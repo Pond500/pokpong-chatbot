@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+
+# Editor specific
+.vscode/
+.idea/
+
+# Sensitive files & Logs
+.env
+*.log
+*.jsonl
