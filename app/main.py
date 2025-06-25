@@ -24,7 +24,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 # --- Import from our own modules ---
 from .models import ChatRequest, SearchRequest
 # import จาก llm_setup เฉพาะสิ่งที่อยู่ในไฟล์นั้นจริงๆ
-from .core.llm_setup import llm, retriever, index, token_counter
+from .core.llm_setup import llm, retriever, index, token_counter, reranker
 # import prompt และ route_query จาก router.py
 from .core.router import route_query, ROLE_INFO, DOPA_GENERAL_PROMPT, GENERAL_ROLE_INFO
 # import จาก memory.py
@@ -73,7 +73,7 @@ async def chat_with_routing(request: ChatRequest) -> Dict[str, Any]:
 
         # ตรรกะการเลือกเส้นทาง
         if decision == 'RAG':
-            chat_engine = CondensePlusContextChatEngine.from_defaults(retriever=retriever, llm=llm, memory=chat_memory, system_prompt=ROLE_INFO)
+            chat_engine = CondensePlusContextChatEngine.from_defaults(retriever=retriever, llm=llm, memory=chat_memory, system_prompt=ROLE_INFO, node_postprocessors=[reranker] )
             response = await chat_engine.achat(request.query)
             full_response_text = response.response
             if response.source_nodes:
@@ -157,7 +157,7 @@ async def stream_chat_with_routing(request: ChatRequest) -> StreamingResponse:
 
             # ตรรกะการเลือกเส้นทาง
             if decision == 'RAG':
-                chat_engine = CondensePlusContextChatEngine.from_defaults(retriever=retriever, llm=llm, memory=chat_memory, system_prompt=ROLE_INFO)
+                chat_engine = CondensePlusContextChatEngine.from_defaults(retriever=retriever, llm=llm, memory=chat_memory, system_prompt=ROLE_INFO, node_postprocessors=[reranker] )
                 streaming_response = await chat_engine.astream_chat(user_query)
                 async for token in streaming_response.async_response_gen():
                     full_response_text += token
